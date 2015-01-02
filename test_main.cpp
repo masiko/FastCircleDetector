@@ -4,11 +4,11 @@
 #include "FCD.h"
 
 int main() {
-	char fname[] = "Picture 11.jpg";
+	char fname[] = "Picture 11.jpg";// Picture 5.jpg
 	int num;
-	double in[307200];
+	double in[MAX_SIZE];
 	std::vector<int> v;
-	FCD fcd(50);
+	FCD fcd(50, 4);
 	IplImage* img = cvLoadImage(fname, 0);
 	cv::Mat result;
 	result = cv::imread(fname);
@@ -27,9 +27,9 @@ int main() {
 	v = fcd.getDst();
 	
 	printf("size: %d\n", v.size());	
-	for (int i=0; i<v.size()/2; i++) {
-		printf("%d, %d\n", v[2*i], v[2*i+1]);
-		cv::circle(result, cv::Point(v[2*i], v[2*i+1]), 20, cv::Scalar(0, 0, 255));
+	for (int i=0; i<v.size()/3; i++) {
+		printf("%d, %d, %d\n", v[3*i], v[3*i+1], v[3*i+2]);
+		cv::circle(result, cv::Point(v[3*i], v[3*i+1]), v[3*i+2], cv::Scalar(0, 0, 255));
 	}
 
 	cv::namedWindow("result");

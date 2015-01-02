@@ -2,13 +2,21 @@
 #include "math.h"
 
 FCD::FCD() {
-	for (int i=0; i<307200; i++)	countmap[i] = 0;
+	for (int i=0; i<MAX_SIZE; i++)	votemap[i] = 0, radiusmap[i] = 0;
 	wsize = 10;
+	scale = 4;
+	MAX_LINE_LENGTH = 20;
+	MAX_RADIUS_DIFF = 10;
+	MIN_VOTE = 5;
 }
 
-FCD::FCD(int w) {
-	for (int i=0; i<307200; i++)	countmap[i] = 0;
+FCD::FCD(int w, int s) {
+	for (int i=0; i<MAX_SIZE; i++)	votemap[i] = 0;
 	wsize = w/2;
+	scale = s;
+	MAX_LINE_LENGTH = 20;
+	MAX_RADIUS_DIFF = 5;
+	MIN_VOTE = 5;
 }
 
 
@@ -19,7 +27,7 @@ int FCD::Ipl2Double(IplImage *in, double out[]) {
 	cols = in->width;
 	rows = in->height;
 
-	if (in->width*in->height > 307200)	return 1;
+	if (in->width*in->height > MAX_SIZE)	return 1;
 
 	for (int i=0; i<in->height; i++) {
 		y = i*in->width;
@@ -55,7 +63,7 @@ std::vector<double> FCD::cvtNormal(int num) {
 		b = y-(a*x); 
 		dis = sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 
-		if (dis>20)	continue;
+		if (dis>MAX_LINE_LENGTH)	continue;
 		normal.push_back(x);
 		normal.push_back(y);
 		normal.push_back(a);
@@ -68,7 +76,7 @@ int FCD::process(){
 	FILE* fp = fopen("log.txt","w");
 	FILE* fp2 = fopen("log_circle.txt","w");
 	int num = normal.size()/4;
-	double x,y;
+	double x,y,r;
 	double x1, y1, x2, y2;
 	double a1, b1, a2, b2;
 	double r1,r2;
@@ -87,10 +95,9 @@ int FCD::process(){
 			a2 = normal[4*j+2];
 			b2 = normal[4*j+3];
 			
-
 			//filter
 			if (x2<x1-wsize || x1+wsize<x2 || y2<y1-wsize || y1+wsize<y2)	continue;
-			if (fabs(a1-a2) <= 0.0001)	continue;
+//			if (fabs(a1-a2) <= 0.0001)	continue;
 
 			x = (b2-b1)/(a1-a2);
 			y = a1*x+b1;
@@ -101,12 +108,13 @@ int FCD::process(){
 			r1 = sqrt((x-x1)*(x-x1)+(y-y1)*(y-y1));
 			r2 = sqrt((x-x2)*(x-x2)+(y-y2)*(y-y2));
 
-			if ( fabs(r1-r2) > 10)	continue;
-			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f], ", x1,y1,a1,b1);
-			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f], ", x2,y2,a2,b2);
-			fprintf(fp2, "/%.0f,%.0f,%.0f,%.0f/\n", x,y,r1,r2);
+			if ( fabs(r1-r2) > MAX_RADIUS_DIFF)	continue;
+			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f,%.0f], ", x1,y1,a1,b1,r1);
+			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f,%.0f], ", x2,y2,a2,b2,r2);
+			fprintf(fp2, "/%.0f,%.0f,%.0f/\n", x,y,(r1+r2)/2);
 
-			countmap[(int)x+cols*(int)y] += 1;
+			votemap[(int)x+cols*(int)y] += 1;
+			radiusmap[(int)x+cols*(int)y] = (int)(r1+r2)/2;
 			count++;
 		}
 	}
@@ -116,24 +124,25 @@ int FCD::process(){
 }
 
 int FCD::detectCircle(){
-	int num = cols*rows;
-	if (num > 307200)	return 1;
-
 	int c=0;
+	int r=0;
 
-	for (int i=0; i<rows/4; i++) {
-		for (int j=0; j<cols/4; j++) {
+	for (int i=0; i<rows/scale; i++) {
+		for (int j=0; j<cols/scale; j++) {
 			c=0;
-			for (int k=0; k<4; k++) {
-				for (int l=0; l<4; l++) {
-					if (countmap[4*i*cols+4*j+k*cols+l]) {
-						c++;
+			r=0;
+			for (int k=0; k<scale; k++) {
+				for (int l=0; l<scale; l++) {
+					if (votemap[scale*i*cols+scale*j+k*cols+l]) {
+						c += (int)votemap[scale*i*cols+scale*j+k*cols+l];
+						r += (int)radiusmap[scale*i*cols+scale*j+k*cols+l];
 					}
 				}
 			}
-			if (c>5) {
-				dst.push_back(4*j);
-				dst.push_back(4*i);
+			if (c>MIN_VOTE) {
+				dst.push_back(scale*j);
+				dst.push_back(scale*i);
+				dst.push_back((int)(r/c));
 			}
 		}
 	}
