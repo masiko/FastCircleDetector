@@ -39,6 +39,34 @@ int FCD::Ipl2Double(IplImage *in, double out[]) {
 	return 0;
 }
 
+int FCD::Ipl2Double(IplImage* in, int sx, int sy, int width, int height, double* out) {
+	int ex,ey;
+	int y;
+	int k=0, l=0;
+	unsigned char value;
+	
+	cols = width;
+	rows = height;
+
+	if (sx<0 || in->width<=sx || sy<0 || in->height<=sy)	return 1;
+	if (width*height > MAX_SIZE)				return 2;
+
+	ex = std::max(0, std::min(sx+width, in->width));
+	ey = std::max(0, std::min(sy+height, in->height));
+	for (int i=sy; i<ey; i++) {
+		y = i*in->width;
+		k++;
+		l=0;
+		for (int j=sx; j<ex; j++) {
+			l++;
+			value = (unsigned char)in->imageData[j+y];
+			
+			out[l+k*width] = (double)value;
+		}
+	}
+	return 0;
+}
+
 std::vector<int> FCD::getDst() {
 	return dst;
 }
@@ -101,6 +129,8 @@ int FCD::process(){
 
 			x = (b2-b1)/(a1-a2);
 			y = a1*x+b1;
+			if (x>(double)cols*1.2 || y>(double)rows*1.2)	continue;
+			else if (x<-(double)cols*0.2 || y<-(double)rows*0.2)	continue;
 			x = std::max(0.0, std::min(x, double(cols)));
 			y = std::max(0.0, std::min(y, double(rows)));
 			
@@ -126,6 +156,7 @@ int FCD::process(){
 int FCD::detectCircle(){
 	int c=0;
 	int r=0;
+	int pos;
 
 	for (int i=0; i<rows/scale; i++) {
 		for (int j=0; j<cols/scale; j++) {
@@ -133,9 +164,10 @@ int FCD::detectCircle(){
 			r=0;
 			for (int k=0; k<scale; k++) {
 				for (int l=0; l<scale; l++) {
-					if (votemap[scale*i*cols+scale*j+k*cols+l]) {
-						c += (int)votemap[scale*i*cols+scale*j+k*cols+l];
-						r += (int)radiusmap[scale*i*cols+scale*j+k*cols+l];
+					pos = scale*i*cols+scale*j+k*cols+l;
+					if (votemap[pos]) {
+						c += (int)votemap[pos];
+						r += radiusmap[pos];
 					}
 				}
 			}
@@ -149,3 +181,26 @@ int FCD::detectCircle(){
 	return 0;
 }
 
+std::vector<int> FCD::fcd(IplImage* img) {
+	double in[MAX_SIZE];
+	int num;
+
+	Ipl2Double(img, in);
+	getLS(in, &num, img->width, img->height);
+	cvtNormal(num);
+	process();
+	detectCircle();	
+	return getDst();
+}
+
+std::vector<int> FCD::fcd(IplImage* img, int x, int y, int width, int height) {
+	double in[MAX_SIZE];
+	int num;
+
+	Ipl2Double(img, x, y, width, height, in);
+	getLS(in, &num, width, height);
+	cvtNormal(num);
+	process();
+	detectCircle();	
+	return getDst();
+}

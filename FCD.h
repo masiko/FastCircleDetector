@@ -28,11 +28,14 @@ public:
 	FCD();
 	FCD(int width, int scale);
 	~FCD(){};
+	int Ipl2Double(IplImage* in, int x, int y, int width, int height, double* out);
 	int Ipl2Double(IplImage* in, double* out);
-	double* getTangent(int* num);
-	std::vector<int> getDst();
 	int getLS(double* in, int* num, int width, int height);
+	double* getTangent(int* num);
 	std::vector<double> cvtNormal(int num);
+	std::vector<int> getDst();	
 	int process();
 	int detectCircle();
+	std::vector<int> fcd(IplImage* in);
+	std::vector<int> fcd(IplImage* in, int x, int y, int width, int height);
 };
