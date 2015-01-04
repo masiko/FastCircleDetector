@@ -6,7 +6,7 @@
 
 int main() {
 	const int scale = 1;
-	char fname[] = "Picture 9.jpg";// Picture 5.jpg
+	char fname[] = "Picture 5.jpg";// Picture 5.jpg
 	int num;
 	double in[MAX_SIZE];
 	std::vector<int> v;
@@ -35,13 +35,16 @@ int main() {
 	v = fcd.getDst();
 */	
 //	v = fcd.fcd(gray);
-	v = fcd.fcd(gray, 200, 130, 40, 40);
+/*	v = fcd.fcd(gray, 150, 90, 70, 70);
 	printf("size: %d\n", v.size());	
 	for (int i=0; i<v.size()/3; i++) {
 		printf("%d, %d, %d\n", v[3*i], v[3*i+1], v[3*i+2]);
-		cv::circle(result, cv::Point(v[3*i]*scale+150, v[3*i+1]*scale+65), v[3*i+2]*scale, cv::Scalar(0, 0, 255));
+		cv::circle(result, cv::Point(v[3*i]*scale+150, v[3*i+1]*scale+95), v[3*i+2]*scale, cv::Scalar(0, 0, 255));
 	}
-
+*/
+	float x, y;
+	fcd.fcd(gray, 180, 150, 70, 70, &x, &y);
+	cv::circle(result, cv::Point(x*scale+180, y*scale+150), 10, cv::Scalar(0, 0, 255));
 	cv::namedWindow("result");
 	cv::imshow("result", result);
 	cv::imwrite("dst.png", result);

@@ -174,10 +174,44 @@ int FCD::detectCircle(){
 			if (c>MIN_VOTE) {
 				dst.push_back(scale*j);
 				dst.push_back(scale*i);
-				dst.push_back((int)(r/c));
+			//	dst.push_back((int)(r/c));
+				dst.push_back(c);
 			}
 		}
 	}
+	return 0;
+}
+
+int FCD::detectCircle(float* x, float *y){
+	int cx=0, cy=0, num=0;
+	int c=0;
+	int r=0;
+	int pos;
+
+	for (int i=0; i<rows/scale; i++) {
+		for (int j=0; j<cols/scale; j++) {
+			c=0;
+			r=0;
+			for (int k=0; k<scale; k++) {
+				for (int l=0; l<scale; l++) {
+					pos = scale*i*cols+scale*j+k*cols+l;
+					if (votemap[pos]) {
+						c += (int)votemap[pos];
+						r += radiusmap[pos];
+					}
+				}
+			}
+			if (c>MIN_VOTE) {
+				if (c>num) {
+					cx = scale*j;
+					cy = scale*i;
+					num = c;
+				}
+			}
+		}
+	}
+	*x = (float)cx;
+	*y = (float)cy;
 	return 0;
 }
 
@@ -203,4 +237,16 @@ std::vector<int> FCD::fcd(IplImage* img, int x, int y, int width, int height) {
 	process();
 	detectCircle();	
 	return getDst();
+}
+
+int FCD::fcd(IplImage* img, int x, int y, int width, int height, float* dstx, float* dsty) {
+	double in[MAX_SIZE];
+	int num;
+
+	Ipl2Double(img, x, y, width, height, in);
+	getLS(in, &num, width, height);
+	cvtNormal(num);
+	process();
+	detectCircle(dstx, dsty);	
+	return 0;
 }

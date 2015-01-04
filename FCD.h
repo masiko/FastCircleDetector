@@ -36,6 +36,8 @@ public:
 	std::vector<int> getDst();	
 	int process();
 	int detectCircle();
+	int detectCircle(float* x, float* y);
 	std::vector<int> fcd(IplImage* in);
 	std::vector<int> fcd(IplImage* in, int x, int y, int width, int height);
+	int fcd (IplImage* in, int x, int y, int width, int height, float* dstx, float* dsty);
 };
