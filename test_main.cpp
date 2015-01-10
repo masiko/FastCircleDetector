@@ -1,6 +1,6 @@
-#include "stdio.h"
-#include "cv.h"
-#include "highgui.h"
+#include <stdio.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include "FCD.h"
 #include "DownScale.h"
 
