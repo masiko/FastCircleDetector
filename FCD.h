@@ -1,7 +1,6 @@
-#include "stdio.h"
-#include "vector"
-#include "cv.h"
-#include "highgui.h"
+#include <stdio.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include "lsd.h"
 
 #define MAX_SIZE (307200)

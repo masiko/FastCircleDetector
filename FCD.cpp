@@ -51,8 +51,8 @@ int FCD::Ipl2Double(IplImage* in, int sx, int sy, int width, int height, double*
 	if (sx<0 || in->width<=sx || sy<0 || in->height<=sy)	return 1;
 	if (width*height > MAX_SIZE)				return 2;
 
-	ex = std::max(0, std::min(sx+width, in->width));
-	ey = std::max(0, std::min(sy+height, in->height));
+	ex = std::max(0, std::min(sx+width, in->width-1));
+	ey = std::max(0, std::min(sy+height, in->height-1));
 	for (int i=sy; i<ey; i++) {
 		y = i*in->width;
 		k++;
