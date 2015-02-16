@@ -1,12 +1,12 @@
 #include "stdio.h"
-#include "cv.h"
-#include "highgui.h"
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include "FCD.h"
 #include "DownScale.h"
 
 int main() {
 	const int scale = 1;
-	char fname[] = "Picture 5.jpg";// Picture 5.jpg
+	char fname[] = "Picture 11.jpg";// Picture 5.jpg
 	int num;
 	double in[MAX_SIZE];
 	std::vector<int> v;
@@ -43,8 +43,8 @@ int main() {
 	}
 */
 	float x, y;
-	fcd.fcd(gray, 180, 150, 70, 70, &x, &y);
-	cv::circle(result, cv::Point(x*scale+180, y*scale+150), 10, cv::Scalar(0, 0, 255));
+	fcd.fcd(gray, 120, 60, 100, 100, &x, &y);
+	cv::circle(result, cv::Point(x*scale+135, y*scale+70), 10, cv::Scalar(0, 0, 255));
 	cv::namedWindow("result");
 	cv::imshow("result", result);
 	cv::imwrite("dst.png", result);

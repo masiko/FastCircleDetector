@@ -78,7 +78,7 @@ int FCD::getLS(double* in, int* num, int width, int height) {
 
 std::vector<double> FCD::cvtNormal(int num) {
 	double x1,y1,x2,y2;
-	double x, y, a, b, dis;
+	double x, y, dis, the;
 
 	for (int i=0; i<num; i++) {
 		x1 = *(tangent + 7*i);
@@ -87,15 +87,13 @@ std::vector<double> FCD::cvtNormal(int num) {
 		y2 = *(tangent + 7*i+3);
 		x = (x1+x2)/2.0;
 		y = (y1+y2)/2.0;
-		a = -((x1-x2)/(y1-y2));
-		b = y-(a*x); 
+		the = -atan2(x1-x2, y1-y2);
 		dis = sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 
 		if (dis>MAX_LINE_LENGTH)	continue;
 		normal.push_back(x);
 		normal.push_back(y);
-		normal.push_back(a);
-		normal.push_back(b);
+		normal.push_back(the);
 	}
 	return normal;
 }
@@ -103,32 +101,32 @@ std::vector<double> FCD::cvtNormal(int num) {
 int FCD::process(){
 	FILE* fp = fopen("log.txt","w");
 	FILE* fp2 = fopen("log_circle.txt","w");
-	int num = normal.size()/4;
+	int num = normal.size()/3;
 	double x,y,r;
 	double x1, y1, x2, y2;
-	double a1, b1, a2, b2;
+	double the1, the2;
 	double r1,r2;
+	double dis;
 	int count=0;
 
 	for (int i=0; i<num; i++) {
-		x1 = normal[4*i];
-		y1 = normal[4*i+1];
-		a1 = normal[4*i+2];
-		b1 = normal[4*i+3];
-		fprintf(fp, "[%.1f,%.1f,%.1f,%.1f]\n", x1,y1,a1,b1);
+		x1 = normal[3*i];
+		y1 = normal[3*i+1];
+		the1 = normal[3*i+2];
+//		fprintf(fp, "[%.1f,%.1f,%.1f,%.1f]\n", x1,y1,a1,b1);
 		
 		for ( int j=i+1; j<num; j++) {
-			x2 = normal[4*j];
-			y2 = normal[4*j+1];
-			a2 = normal[4*j+2];
-			b2 = normal[4*j+3];
+			x2 = normal[3*j];
+			y2 = normal[3*j+1];
+			the2 = normal[3*j+2];
 			
 			//filter
 			if (x2<x1-wsize || x1+wsize<x2 || y2<y1-wsize || y1+wsize<y2)	continue;
-//			if (fabs(a1-a2) <= 0.0001)	continue;
+			if (fabs(the1-the2)> 0.0001)	dis = ((x2-x1)*sin(the2) - (y2-y1)*cos(the2))/sin(the2-the1);
+			else							continue;
+			x = x1 + dis*cos(the1);
+			y = y1 + dis*sin(the1);
 
-			x = (b2-b1)/(a1-a2);
-			y = a1*x+b1;
 			if (x>(double)cols*1.2 || y>(double)rows*1.2)	continue;
 			else if (x<-(double)cols*0.2 || y<-(double)rows*0.2)	continue;
 			x = std::max(0.0, std::min(x, double(cols)));
@@ -139,8 +137,8 @@ int FCD::process(){
 			r2 = sqrt((x-x2)*(x-x2)+(y-y2)*(y-y2));
 
 			if ( fabs(r1-r2) > MAX_RADIUS_DIFF)	continue;
-			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f,%.0f], ", x1,y1,a1,b1,r1);
-			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f,%.0f], ", x2,y2,a2,b2,r2);
+			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f], ", x1,y1,the1,r1);
+			fprintf(fp2, "[%.0f,%.0f,%.0f,%.0f], ", x2,y2,the2,r2);
 			fprintf(fp2, "/%.0f,%.0f,%.0f/\n", x,y,(r1+r2)/2);
 
 			votemap[(int)x+cols*(int)y] += 1;
