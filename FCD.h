@@ -1,5 +1,4 @@
-#include "stdio.h"
-#include "vector"
+#include <stdio.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "lsd.h"
